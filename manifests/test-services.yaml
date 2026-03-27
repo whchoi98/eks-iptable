@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: conntrack-test
+---
+# Nginx Deployment — 200 replicas (100 서비스 × 2 replicas)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-backend
+  namespace: conntrack-test
+spec:
+  replicas: 200
+  selector:
+    matchLabels:
+      app: nginx-backend
+  template:
+    metadata:
+      labels:
+        app: nginx-backend
+    spec:
+      containers:
+        - name: nginx
+          image: public.ecr.aws/nginx/nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+---
+# 100개 ClusterIP Service 생성 스크립트용 템플릿
+# 실제 배포는 03.deploy-test-workload.sh에서 루프로 생성

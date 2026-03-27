@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: conntrack-monitor
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conntrack-collector-script
+  namespace: conntrack-monitor
+data:
+  collect.sh: |
+    #!/bin/bash
+    # conntrack 메트릭 수집 스크립트
+    # 출력 형식: JSON (Prometheus/CloudWatch 파싱 가능)
+    INTERVAL="${COLLECT_INTERVAL:-5}"
+    HOSTNAME=$(hostname)
+
+    while true; do
+      TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+      # /proc 기반 메트릭
+      CT_COUNT=$(cat /proc/sys/net/netfilter/nf_conntrack_count 2>/dev/null || echo 0)
+      CT_MAX=$(cat /proc/sys/net/netfilter/nf_conntrack_max 2>/dev/null || echo 0)
+
+      # conntrack -S 통계 (CPU별 합산)
+      if command -v conntrack &>/dev/null; then
+        STATS=$(conntrack -S 2>/dev/null)
+        SEARCHED=$(echo "$STATS" | awk -F= '/searched/{s+=$2}END{print s+0}')
+        FOUND=$(echo "$STATS" | awk -F= '/found/{s+=$2}END{print s+0}')
+        INSERT=$(echo "$STATS" | awk -F= '/insert /{s+=$2}END{print s+0}')
+        INSERT_FAILED=$(echo "$STATS" | awk -F= '/insert_failed/{s+=$2}END{print s+0}')
+        DROP=$(echo "$STATS" | awk -F= '/drop/{s+=$2}END{print s+0}')
+        EARLY_DROP=$(echo "$STATS" | awk -F= '/early_drop/{s+=$2}END{print s+0}')
+      else
+        SEARCHED=0 FOUND=0 INSERT=0 INSERT_FAILED=0 DROP=0 EARLY_DROP=0
+      fi
+
+      # JSON 출력
+      echo "{\"timestamp\":\"${TIMESTAMP}\",\"node\":\"${HOSTNAME}\",\"conntrack_count\":${CT_COUNT},\"conntrack_max\":${CT_MAX},\"searched\":${SEARCHED},\"found\":${FOUND},\"insert\":${INSERT},\"insert_failed\":${INSERT_FAILED},\"drop\":${DROP},\"early_drop\":${EARLY_DROP}}"
+
+      sleep "$INTERVAL"
+    done
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: conntrack-monitor
+  namespace: conntrack-monitor
+  labels:
+    app: conntrack-monitor
+spec:
+  selector:
+    matchLabels:
+      app: conntrack-monitor
+  template:
+    metadata:
+      labels:
+        app: conntrack-monitor
+    spec:
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: collector
+          image: public.ecr.aws/amazonlinux/amazonlinux:2023
+          command: ["/bin/bash", "/scripts/collect.sh"]
+          env:
+            - name: COLLECT_INTERVAL
+              value: "5"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: proc-sys
+              mountPath: /proc/sys
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: conntrack-collector-script
+            defaultMode: 0755
+        - name: proc-sys
+          hostPath:
+            path: /proc/sys

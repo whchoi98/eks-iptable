@@ -24,7 +24,7 @@ declare -A NODEGROUP_NAMES=(
 
 declare -A PROXY_CONFIGS=(
   [iptables]=""
-  [ipvs]="    configurationValues: '{\"mode\": \"ipvs\", \"ipvs\": {\"scheduler\": \"rr\", \"strictARP\": true}}'"
+  [ipvs]="    configurationValues: '{\"mode\": \"ipvs\", \"ipvs\": {\"scheduler\": \"rr\"}}'"
   [nftables]="    configurationValues: '{\"mode\": \"nftables\"}'"
 )
 

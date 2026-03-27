@@ -21,9 +21,6 @@ vpc:
       ap-northeast-2b:
         id: "subnet-061c509c3cdc3b047"
 
-privateCluster:
-  enabled: true
-
 managedNodeGroups:
   - name: ${NODEGROUP_NAME}
     instanceType: m6g.xlarge

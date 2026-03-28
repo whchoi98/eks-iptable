@@ -1,0 +1,85 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: ekscluster01-ipvs
+  region: ap-northeast-2
+  version: "1.35"
+  tags:
+    Environment: lab
+    Project: eks-conntrack-analysis
+    ProxyMode: ipvs
+    ManagedBy: eksctl
+
+vpc:
+  id: "vpc-0151a6dcd10c1c738"
+  subnets:
+    private:
+      ap-northeast-2a:
+        id: "subnet-015d50a97799cda56"
+      ap-northeast-2b:
+        id: "subnet-061c509c3cdc3b047"
+
+managedNodeGroups:
+  - name: ng-ipvs
+    instanceType: m6g.xlarge
+    desiredCapacity: 4
+    minSize: 4
+    maxSize: 4
+    volumeSize: 50
+    volumeType: gp3
+    volumeEncrypted: true
+    amiFamily: AmazonLinux2023
+    labels:
+      nodegroup-type: "ng-ipvs"
+      proxy-mode: "ipvs"
+    tags:
+      Environment: lab
+      Project: eks-conntrack-analysis
+      ProxyMode: ipvs
+    privateNetworking: true
+    subnets:
+      - "subnet-015d50a97799cda56"
+      - "subnet-061c509c3cdc3b047"
+    ssh:
+      enableSsm: true
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        ebs: true
+        cloudWatch: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes:
+      - api
+      - audit
+      - authenticator
+      - controllerManager
+      - scheduler
+
+iam:
+  withOIDC: true
+
+addons:
+  - name: vpc-cni
+    version: v1.21.1-eksbuild.5
+    attachPolicyARNs:
+      - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  - name: coredns
+    version: v1.13.2-eksbuild.3
+  - name: kube-proxy
+    version: v1.35.2-eksbuild.4
+    configurationValues: '{"mode": "ipvs", "ipvs": {"scheduler": "rr"}}'
+  - name: aws-ebs-csi-driver
+    version: v1.57.1-eksbuild.1
+    wellKnownPolicies:
+      ebsCSIController: true
+  - name: eks-pod-identity-agent
+    version: v1.3.10-eksbuild.2
+  - name: metrics-server
+    version: v0.8.1-eksbuild.4
+  - name: amazon-cloudwatch-observability
+    version: v5.2.3-eksbuild.1

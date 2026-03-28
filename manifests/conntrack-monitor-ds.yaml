@@ -21,8 +21,8 @@ data:
       TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
       # /proc 기반 메트릭
-      CT_COUNT=$(cat /proc/sys/net/netfilter/nf_conntrack_count 2>/dev/null || echo 0)
-      CT_MAX=$(cat /proc/sys/net/netfilter/nf_conntrack_max 2>/dev/null || echo 0)
+      CT_COUNT=$(cat /host/proc/sys/net/netfilter/nf_conntrack_count 2>/dev/null || echo 0)
+      CT_MAX=$(cat /host/proc/sys/net/netfilter/nf_conntrack_max 2>/dev/null || echo 0)
 
       # conntrack -S 통계 (CPU별 합산)
       if command -v conntrack &>/dev/null; then
@@ -76,7 +76,7 @@ spec:
             - name: scripts
               mountPath: /scripts
             - name: proc-sys
-              mountPath: /proc/sys
+              mountPath: /host/proc/sys
               readOnly: true
           resources:
             requests:

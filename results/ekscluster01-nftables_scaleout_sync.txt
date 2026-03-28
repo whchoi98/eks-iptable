@@ -1,0 +1,15 @@
+# 노드 스케일아웃 테스트 결과
+# cluster: ekscluster01-nftables
+# proxy_mode: nftables
+# scale_start_epoch: 1774676719
+# node_ready_epoch: 1774676763
+# node_join_duration_sec: 44
+# new_node: ip-10-11-70-216.ap-northeast-2.compute.internal
+# new_proxy_pod: kube-proxy-jj2rg
+# existing_services: 101
+# existing_endpoints: 201
+
+## new_node kube-proxy metrics
+
+# sync_duration_sum: N/A
+# sync_count: N/A

@@ -1,0 +1,10 @@
+# node=ip-10-11-93-1.ap-northeast-2.compute.internal pod=kube-proxy-2lmbw
+
+# node=ip-10-11-34-222.ap-northeast-2.compute.internal pod=kube-proxy-bdk9v
+
+# node=ip-10-11-70-216.ap-northeast-2.compute.internal pod=kube-proxy-jj2rg
+
+# node=ip-10-11-80-4.ap-northeast-2.compute.internal pod=kube-proxy-zr4jp
+
+# node=ip-10-11-32-184.ap-northeast-2.compute.internal pod=kube-proxy-zwql2
+

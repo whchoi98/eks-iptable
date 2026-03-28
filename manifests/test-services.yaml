@@ -11,7 +11,7 @@ metadata:
   name: nginx-backend
   namespace: conntrack-test
 spec:
-  replicas: 200
+  replicas: 180
   selector:
     matchLabels:
       app: nginx-backend
